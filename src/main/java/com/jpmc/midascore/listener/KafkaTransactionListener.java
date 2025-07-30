@@ -10,8 +10,13 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Service
 public class KafkaTransactionListener {
+
+    private static final Logger logger = LoggerFactory.getLogger(KafkaTransactionListener.class);
 
     @Autowired
     private UserRepository userRepository;
@@ -26,12 +31,13 @@ public class KafkaTransactionListener {
         UserRecord recipient = userRepository.findById(transaction.getRecipientId());
 
         if (sender == null || recipient == null) {
-            System.out.println("Invalid sender or recipient, skipping transaction.");
+            logger.warn("❌ Invalid sender or recipient for transaction: {}", transaction);
             return;
         }
 
         if (sender.getBalance() < transaction.getAmount()) {
-            System.out.println("Insufficient balance, skipping transaction.");
+            logger.warn("💸 Insufficient balance for sender '{}', skipping transaction of amount {}.",
+                        sender.getName(), transaction.getAmount());
             return;
         }
 
@@ -43,13 +49,16 @@ public class KafkaTransactionListener {
         userRepository.save(recipient);
 
         // Record transaction
-        TransactionRecord record = new TransactionRecord();
-        record.setAmount(transaction.getAmount());
-        record.setSender(sender);
-        record.setRecipient(recipient);
-
+        TransactionRecord record = new TransactionRecord(transaction.getAmount(), sender, recipient);
         transactionRepository.save(record);
 
-        System.out.println("Transaction recorded: " + record);
+        logger.info("✅ Transaction recorded: {}", record);
+
+        // Waldorf-specific balance log
+        if ("waldorf".equalsIgnoreCase(sender.getName()) || "waldorf".equalsIgnoreCase(recipient.getName())) {
+            UserRecord waldorf = userRepository.findByName("waldorf");
+            logger.info("📊 Waldorf’s updated balance: {}", (int) Math.floor(waldorf.getBalance()));
+        }
     }
 }
+
