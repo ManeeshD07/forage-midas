@@ -59,7 +59,15 @@ public class TransactionRecord {
     }
 
     @Override
-    public String toString(){
-        return String.format("Transaction[id=%d, sender=%s, recipient=%s, amount=%f]", id, sender.getName(), recipient.getName(), amount);
+    public String toString() {
+        return String.format("Transaction[id=%d, sender=%s, recipient=%s, amount=%f, incentive=%f]",
+            id, sender.getName(), recipient.getName(), amount, incentive);
     }
+
+
+    @Column
+    private float incentive;
+    public float getIncentive() { return incentive; }
+    public void setIncentive(float incentive) { this.incentive = incentive; }
+
 }
