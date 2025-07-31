@@ -5,7 +5,6 @@ import com.jpmc.midascore.entity.TransactionRecord;
 import com.jpmc.midascore.entity.UserRecord;
 import com.jpmc.midascore.repository.TransactionRepository;
 import com.jpmc.midascore.repository.UserRepository;
-import com.jpmc.midascore.service.IncentiveService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -24,9 +23,6 @@ public class KafkaTransactionListener {
 
     @Autowired
     private TransactionRepository transactionRepository;
-
-    @Autowired
-    private IncentiveService incentiveService;
 
     @KafkaListener(topics = "${general.kafka-topic}", groupId = "midas-group")
     @Transactional
